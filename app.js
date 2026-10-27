@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   if (window.__desk) return; // máy tính: app chạy trong khung điện thoại (iframe) ở giữa màn
-  const VER = "1.0.1";
+  const VER = "1.0.2";
   const $ = (id) => document.getElementById(id);
   const TEST = /[?&]thu=1\b/.test(location.search); // chạy thử: luôn tắt tiếng video
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -122,6 +122,7 @@
   const ini = (n) => esc((String(n || "?").replace(/^@/, "").trim()[0] || "?").toUpperCase());
   const colorOf = (n) => { let h = 0; for (const c of String(n || "")) h = (h * 31 + c.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; };
   const avHtml = (name, url, cls = "av") => url ? `<div class="${cls}" style="background-image:url('${esc(url)}')"></div>` : `<div class="${cls}" style="background:${colorOf(name)}">${ini(name)}</div>`;
+  const fmtT = (s) => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
   const fmtDur = (s) => { s = Math.round(s || 0); if (!s) return ""; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
   const fmtViews = (n) => !n ? "" : n >= 1e9 ? (n / 1e9).toFixed(1).replace(".", ",").replace(",0", "") + " tỷ lượt xem" : n >= 1e6 ? (n / 1e6).toFixed(1).replace(".", ",").replace(",0", "") + " Tr lượt xem" : n >= 1e3 ? Math.round(n / 1e3) + "N lượt xem" : n + " lượt xem";
   const UNIT = { second: "giây", minute: "phút", hour: "giờ", day: "ngày", week: "tuần", month: "tháng", year: "năm", y: "năm", mo: "tháng", w: "tuần", d: "ngày", h: "giờ", m: "phút", s: "giây" };
@@ -564,7 +565,7 @@
   }
 
   // ================= LƯỚT kiểu mạng xã hội =================
-  let lList = [], lIdx = -1, lSrc = null, lObs = null, lMoreBusy = false, lDeb = 0;
+  let lList = [], lIdx = -1, lSrc = null, lMoreBusy = false;
   let Pl = null; // video đang phát: {slide, it, player, state, ...}
   let ytP = null;
   function loadYT() {
@@ -588,12 +589,10 @@
     lList = []; lIdx = -1; lSrc = src;
     const feed = $("lfeed"); feed.innerHTML = "";
     $("lTitle").innerHTML = esc(src && src.name ? src.name : "Lướt");
-    if (lObs) lObs.disconnect();
-    lObs = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting && e.intersectionRatio > 0.6) activate(+e.target.dataset.i); }, { root: feed, threshold: [0.6] });
     const start = list.slice(idx).filter(okItem), before = list.slice(0, idx).filter(okItem);
     luotAdd([...start, ...before]);
     feed.scrollTop = 0;
-    setTimeout(() => activate(0), 30);
+    activate(0);
   }
   function luotAdd(items, at) {
     const feed = $("lfeed"), seen = new Set(lList.map((x) => x.id));
@@ -633,7 +632,7 @@
         <button class="rb${cfg.cc ? "" : " off"}" data-a="cc" data-r="cc" title="Phụ đề tiếng Việt">${cfg.cc ? I.cc : I.ccOff}</button>
         <button class="rb" data-a="more" title="Thêm">${I.dotsH}</button>
       </div><button class="rb rtog" data-a="tog" aria-label="Mở nút">${isLiked(it.id) ? HEART_S : I.chev}</button></div>
-      <div class="lpb"><i></i></div>`;
+      <div class="lpb"><em><i></i><b class="kn"></b></em><span class="lt"></span></div>`;
     d.querySelector(".sinfo span").textContent = it.ch ? "@" + it.ch.replace(/^@/, "") : "";
     if (!it.ch) d.querySelector(".sinfo .chn").style.display = "none";
     d.querySelector(".sinfo b").textContent = it.title; d.querySelector(".sinfo small").textContent = [fmtViews(it.views), viAgo(it.ago), it.dur && !it.short ? fmtDur(it.dur) : ""].filter(Boolean).join(" · ");
@@ -642,7 +641,7 @@
     rail.onclick = (e) => { const b = e.target.closest("[data-a]"); if (!b) return; e.stopPropagation(); if (b.dataset.a === "tog") { railOpen(rail, !rail.classList.contains("open") || performance.now() - (rail._hov || 0) < 600); return; } railOpen(rail, true); act(it, b.dataset.a, d); };
     rail.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") { if (!rail.classList.contains("open")) rail._hov = performance.now(); railOpen(rail, true); } }); rail.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") railClose(rail, 1500); }); // chạm trên điện thoại cũng sinh sự kiện chuột giả: chỉ mở khi là chuột thật
     d.querySelector(".landbtn").onclick = (e) => { e.stopPropagation(); act(it, "land", d); };
-    d.querySelector(".unmute").onclick = (e) => { e.stopPropagation(); if (Pl && Pl.slide === d && Pl.player) { if (!TEST) { Pl.player.unMute(); Pl.player.setVolume(100); } d.classList.remove("muted"); Pl.player.playVideo(); } };
+    d.querySelector(".unmute").onclick = (e) => { e.stopPropagation(); if (Pl && Pl.slide === d && Pl.player) unmuteNow(); };
     let lastTap = 0, tapT = 0;
     d.querySelector(".tapz").addEventListener("click", (e) => {
       const t = performance.now();
@@ -650,14 +649,26 @@
       lastTap = t;
       tapT = setTimeout(() => togglePlay(d), 260);
     });
-    d.querySelector(".lpb").onclick = (e) => { e.stopPropagation(); const s = Pl; if (!s || s.slide !== d || !s.player || !s.player.getDuration) return; const r = e.currentTarget.getBoundingClientRect(), dur = s.player.getDuration() || 0; if (dur) { s.player.seekTo(dur * (e.clientX - r.left) / r.width, true); s.player.playVideo(); } };
-    if (lObs) lObs.observe(d);
+    { // thanh tua: chạm / kéo để tua, thả tay mới tua thật; khi kéo hoặc dừng: vạch dày + núm + giờ
+      const pb = d.querySelector(".lpb"), bar = pb.querySelector("i"), kn = pb.querySelector(".kn"), lt = pb.querySelector(".lt"); let drag = false;
+      const frac = (e) => { const r = pb.getBoundingClientRect(); return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); };
+      const durOf = () => { const s = Pl; return s && s.slide === d && s.player && s.player.getDuration ? s.player.getDuration() || 0 : 0; };
+      const paint = (f) => { const dur = durOf(); bar.style.width = (f * 100).toFixed(2) + "%"; kn.style.left = (f * 100).toFixed(2) + "%";
+        lt.textContent = fmtT(f * dur) + " / " + fmtT(dur); lt.style.left = Math.min(84, Math.max(16, f * 100)).toFixed(1) + "%"; };
+      pb.addEventListener("pointerdown", (e) => { const s = Pl; if (!s || s.slide !== d || !s.player) return; e.preventDefault(); e.stopPropagation(); drag = true; pb.classList.add("drag"); try { pb.setPointerCapture(e.pointerId); } catch (_) {} paint(frac(e)); });
+      pb.addEventListener("pointermove", (e) => { if (drag) { e.preventDefault(); paint(frac(e)); } });
+      const end = (e) => { if (!drag) return; drag = false; pb.classList.remove("drag"); const s = Pl, dur = durOf(); if (!s || !dur) return;
+        s.player.seekTo(dur * frac(e), true); if (!s.userPaused) s.player.playVideo(); };
+      pb.addEventListener("pointerup", end); pb.addEventListener("pointercancel", () => { drag = false; pb.classList.remove("drag"); });
+      pb.addEventListener("click", (e) => e.stopPropagation()); pb._drag = () => drag; pb._paint = paint;
+    }
     return d;
   }
   function togglePlay(d) {
     const s = Pl; if (!s || s.slide !== d) return;
-    if (!s.player || !s.ready) return;
-    if (d.classList.contains("tap") || s.state !== 1) { d.classList.remove("tap"); s.userPaused = false; if (!TEST && gestured) { s.player.unMute(); d.classList.remove("muted"); } s.player.playVideo(); }
+    if (!s.player) return;
+    if (d.classList.contains("tap") || s.state !== 1) { d.classList.remove("tap"); s.userPaused = false; if (ypMuted) unmuteNow(); s.player.playVideo(); }
+    else if (ypMuted && !TEST) unmuteNow(); // đang câm: chạm = bật tiếng (như mạng xã hội), chạm lần nữa mới dừng
     else { s.userPaused = true; s.player.pauseVideo(); }
   }
   function heartAt(x, y) {
@@ -713,53 +724,75 @@
   document.addEventListener("pointerdown", (e) => { if (view !== "luot") return; document.querySelectorAll(".srail2.open").forEach((r) => { if (!r.contains(e.target)) railClose(r, 0); }); });
 
   function activate(i) {
-    clearTimeout(lDeb);
-    lDeb = setTimeout(() => {
-      if (view !== "luot") return;
-      const slide = $("lfeed").children[i], it = lList[i];
-      if (!slide || !it || (Pl && Pl.slide === slide)) return;
-      lIdx = i;
-      if (it.short && document.body.classList.contains("full")) setFull(false);
-      play(slide, it);
-      if (i >= lList.length - 3) luotFill();
-    }, 180);
+    if (view !== "luot") return;
+    const slide = $("lfeed").children[i], it = lList[i];
+    if (!slide || !it || (Pl && Pl.slide === slide)) return;
+    lIdx = i;
+    if (it.short && document.body.classList.contains("full")) setFull(false);
+    play(slide, it);
+    if (i >= lList.length - 3) luotFill();
+  }
+  // cuộn: thẻ nằm đúng chỗ là phát ngay (không chờ IntersectionObserver + trễ); khung phát dùng chung trượt theo thẻ đang phát
+  let scT = 0, scRaf = 0;
+  $("lfeed").addEventListener("scroll", () => {
+    if (!scRaf) scRaf = requestAnimationFrame(() => { scRaf = 0; plFollow(); });
+    const f = $("lfeed"), h = f.clientHeight || 1, k = Math.round(f.scrollTop / h);
+    clearTimeout(scT);
+    if (Math.abs(f.scrollTop - k * h) < 2) activate(k); // đã dừng đúng thẻ
+    else scT = setTimeout(() => activate(Math.round(f.scrollTop / h)), 120); // dự phòng khi cuộn dừng lệch
+  }, { passive: true });
+  // ---- 1 trình phát YouTube DÙNG CHUNG cho mọi thẻ: đổi bài bằng loadVideoById (không tạo iframe mới) -> phát nhanh,
+  //      iPhone giữ quyền tự phát + giữ tiếng đã bật cho bài sau. Khung phát nằm dưới danh sách thẻ, trượt theo thẻ đang phát.
+  let YP = null, ypReady = false, ypMuted = true, ypMaking = null;
+  const PL = $("pl");
+  function plFollow() {
+    if (!Pl || document.body.classList.contains("full")) { PL.style.transform = ""; return; }
+    const f = $("lfeed"); PL.style.transform = `translate3d(0,${Pl.slide.offsetTop - f.scrollTop}px,0)`;
+  }
+  function makeYP() {
+    if (ypMaking) return ypMaking;
+    ypMaking = loadYT().then((YT) => new Promise((res) => {
+      YP = new YT.Player("ytHost", {
+        host: "https://www.youtube.com", width: "100%", height: "100%",
+        playerVars: { playsinline: 1, controls: 0, rel: 0, modestbranding: 1, autoplay: 1, mute: 1, fs: 0, iv_load_policy: 3, cc_load_policy: 0, disablekb: 1, origin: location.origin, hl: "vi", cc_lang_pref: "vi" },
+        events: {
+          onReady: () => { ypReady = true; YP.mute(); res(YP); },
+          onStateChange: (e) => { const s = Pl; if (s && s.player) onState(s, e.data); },
+          onError: (e) => { const s = Pl; if (s && s.player) noEmbed(s, e.data); },
+        },
+      });
+    }));
+    ypMaking.catch(() => { ypMaking = null; });
+    return ypMaking;
   }
   function stopP() {
     const s = Pl; Pl = null; if (!s) return;
-    clearInterval(s.tick); clearInterval(s.noEmbT); savePos(s, true);
-    s.slide.classList.remove("noemb"); s.slide.querySelectorAll(".blk").forEach((x) => x.remove());
-    try { s.player && s.player.destroy(); } catch (_) {}
-    s.slide.classList.remove("playing", "paused", "tap", "muted", "act");
-    const pw = s.slide.querySelector(".pw"); pw.querySelectorAll("iframe,.yt").forEach((x) => x.remove());
+    clearInterval(s.tick); clearInterval(s.noEmbT); clearTimeout(s.t1); clearTimeout(s.t2); savePos(s, true);
+    s.slide.classList.remove("noemb", "playing", "paused", "tap", "muted", "act"); s.slide.querySelectorAll(".blk").forEach((x) => x.remove());
     s.slide.querySelector(".lpb i").style.width = "0";
+    s.player = null;
+  }
+  function unmuteNow() { // chỉ gọi trong cú chạm: iPhone cho bật tiếng khi có thao tác của người dùng, giữ cho các bài sau
+    if (!YP || TEST) return;
+    try { YP.unMute(); YP.setVolume(100); ypMuted = false; YP.playVideo(); } catch (_) {}
+    document.querySelectorAll("#lfeed .slide.muted").forEach((x) => x.classList.remove("muted"));
   }
   async function play(slide, it) {
     stopP();
-    const s = Pl = { slide, it, player: null, state: -1, ready: false, userPaused: false, t0: performance.now(), ccTried: 0 };
+    const s = Pl = { slide, it, player: null, state: -1, userPaused: false, t0: performance.now(), ccTried: 0 };
     slide.classList.add("act");
-    const pw = slide.querySelector(".pw"), host = document.createElement("div"); host.className = "yt"; pw.prepend(host);
-    // ghi lịch sử
+    PL.className = "pl " + (it.short ? "v" : "h"); PL.querySelector(".bgb").style.backgroundImage = `url('${bigThumb(it)}')`; plFollow();
     const prev = hist.find((h) => h.id === it.id);
     hist = [Object.assign(pick(it), { pos: prev ? prev.pos || 0 : 0, at: Date.now() }), ...hist.filter((h) => h.id !== it.id)].slice(0, 300); LS.set("hist", hist);
     const start = prev && prev.pos > 15 && (!it.dur || prev.pos < it.dur - 20) ? Math.floor(prev.pos) : 0;
-    let YT;
-    try { YT = await loadYT(); } catch (e) { toast("Điện thoại chưa vào được YouTube — kiểm tra mạng"); return; }
+    try { await makeYP(); } catch (e) { toast("Điện thoại chưa vào được YouTube — kiểm tra mạng"); return; }
     if (Pl !== s) return;
-    s.player = new YT.Player(host, {
-      videoId: it.id, host: "https://www.youtube.com", width: "100%", height: "100%",
-      playerVars: { playsinline: 1, controls: 0, rel: 0, modestbranding: 1, autoplay: 1, mute: 1, fs: 0, iv_load_policy: 3, cc_load_policy: 0, disablekb: 1, start, origin: location.origin, hl: "vi", cc_lang_pref: "vi" },
-      events: {
-        onReady: () => { if (Pl !== s) return; s.ready = true;
-          if (!TEST && gestured) { try { s.player.unMute(); s.player.setVolume(100); } catch (_) {} } else slide.classList.add("muted");
-          s.player.playVideo();
-          setTimeout(() => { if (Pl === s && s.state !== 1 && !s.userPaused) try { s.player.playVideo(); } catch (_) {} }, 2500); // mạng chậm: thử phát lại
-          setTimeout(() => { if (Pl === s && s.state !== 1 && !s.userPaused) slide.classList.add("tap"); }, 5500);
-          if (start) toast("Xem tiếp từ " + fmtDur(start), "Từ đầu", () => { if (Pl === s) s.player.seekTo(0, true); }, 4000);
-        },
-        onStateChange: (e) => onState(s, e.data),
-        onError: (e) => noEmbed(s, e.data),
-      },
-    });
+    s.player = YP;
+    if (ypMuted || TEST) slide.classList.add("muted");
+    try { YP.loadVideoById({ videoId: it.id, startSeconds: start }); } catch (_) {}
+    s.t1 = setTimeout(() => { if (Pl === s && s.state !== 1 && !s.userPaused) try { YP.playVideo(); } catch (_) {} }, 2500); // mạng chậm: thử phát lại
+    s.t2 = setTimeout(() => { if (Pl === s && s.state !== 1 && !s.userPaused) slide.classList.add("tap"); }, 6000);
+    if (start) toast("Xem tiếp từ " + fmtDur(start), "Từ đầu", () => { if (Pl === s) YP.seekTo(0, true); }, 4000);
     s.tick = setInterval(() => tick(s), 250);
   }
   // video chủ kênh cấm nhúng / không có sẵn: che màn lỗi của YouTube bằng khung gọn của mình + nút mở YouTube, tự sang bài kế
@@ -781,16 +814,18 @@
     };
   }
   function onState(s, st) {
-    if (Pl !== s) return; s.state = st;
+    if (Pl !== s) return;
+    try { const vd = YP.getVideoData && YP.getVideoData(); if (vd && vd.video_id && vd.video_id !== s.it.id) return; } catch (_) {} // sự kiện còn sót của bài trước
+    s.state = st;
     const d = s.slide;
-    if (st === 1) { d.classList.add("playing"); d.classList.remove("paused", "tap"); if (!s.ccTried++) setTimeout(() => applyCc(s), 1200); if (!TEST && s.player.isMuted && !s.player.isMuted()) d.classList.remove("muted"); }
+    if (st === 1) { d.classList.add("playing"); d.classList.remove("paused", "tap"); if (!s.ccTried++) setTimeout(() => applyCc(s), 1200); if (!TEST && !ypMuted) d.classList.remove("muted"); }
     if (st === 2) { if (s.userPaused) d.classList.add("paused"); savePos(s, true); }
     if (st === 0) { savePos(s, true); if (cfg.autoNext) setTimeout(() => Pl === s && luotGo(1), 400); else { d.classList.add("paused"); s.userPaused = true; } }
   }
   function tick(s) {
     if (Pl !== s || !s.player || !s.player.getDuration) return;
     const dur = s.player.getDuration() || 0, t = s.player.getCurrentTime ? s.player.getCurrentTime() || 0 : 0;
-    const bar = s.slide.querySelector(".lpb i"); if (bar) bar.style.width = dur ? (100 * t / dur).toFixed(2) + "%" : "0";
+    const pb = s.slide.querySelector(".lpb"); if (pb && !pb._drag()) pb._paint(dur ? t / dur : 0);
     s.slide.classList.toggle("paused", s.state === 2 && s.userPaused);
     if (dur > 5 && t > dur - 0.8 && !s.autoNexted && s.state === 1) { s.autoNexted = true; if (cfg.autoNext) luotGo(1); else { s.player.pauseVideo(); s.userPaused = true; } } // không để màn kết thúc của YouTube hiện
     if (performance.now() - (s.posAt || 0) > 5000) savePos(s);
@@ -822,7 +857,7 @@
     setTimeout(tryVi, 700);
   }
   function luotGo(dlt) { const f = $("lfeed"), n = f.children[Math.max(0, lIdx + dlt)]; if (n) n.scrollIntoView({ behavior: "smooth", block: "start" }); }
-  function leaveLuot() { stopP(); if (document.body.classList.contains("full")) setFull(false, true); }
+  function leaveLuot() { stopP(); try { YP && YP.stopVideo(); } catch (_) {} PL.className = "pl off"; if (document.body.classList.contains("full")) setFull(false, true); }
   $("lBack").onclick = () => { if (history.state && history.state.v === "luot") history.back(); else show("home"); };
   // ---------- xem ngang giả: máy khoá xoay vẫn xem ngang được ----------
   let fsT = 0, fsAuto = false;
@@ -836,6 +871,7 @@
     b.classList.toggle("rot", rot); b.classList.toggle("rot2", rot && !!cfg.rot2);
     if (!on) fsAuto = false;
     if (on) dimFs();
+    plFollow();
   }
   function dimFs() { $("fsx").classList.remove("dim"); clearTimeout(fsT); fsT = setTimeout(() => $("fsx").classList.add("dim"), 3000); }
   $("fsOut").onclick = () => setFull(false);
@@ -866,6 +902,7 @@
 
   // ---------- bật ----------
   async function boot() {
+    setTimeout(() => loadYT().catch(() => {}), 1200);
     if (RELAY()) api("/health", {}, 0).catch(() => {}); else setRelay(false);
     if (!topics || !topics.length) { topics = []; welcome(); } else loadHome();
    

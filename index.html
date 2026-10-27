@@ -12,11 +12,14 @@
 <meta name="apple-mobile-web-app-title" content="VũTube.cơm">
 <meta name="description" content="Lướt video theo chủ đề bạn thích, không quảng cáo rối mắt, không cần tài khoản.">
 <title>VũTube.cơm</title>
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="preconnect" href="https://www.google.com">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<link rel="stylesheet" href="app.css?v=1.0.1">
-<script src="config.js?v=1.0.1"></script>
+<link rel="stylesheet" href="app.css?v=1.0.2">
+<script src="config.js?v=1.0.2"></script>
 </head>
 <body>
 <script>
@@ -55,7 +58,7 @@
   <section class="view" id="vKenh"></section>
   <section class="view" id="vLib"></section>
   <section class="view" id="vSet"></section>
-  <section class="view" id="vLuot"><div id="lfeed"></div>
+  <section class="view" id="vLuot"><div id="pl" class="pl off"><div class="bgb"></div><div class="plv"><div id="ytHost"></div></div></div><div id="lfeed"></div>
     <div class="lhead"><button class="ibtn" id="lBack" aria-label="Quay lại"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b id="lTitle">Lướt</b></div>
   </section>
 </main>
@@ -73,6 +76,6 @@
 <div id="zoom"><img alt=""></div>
 <div id="toast"><span id="tt"></span><button id="tb"></button></div>
 <input type="file" id="fileIn" accept="application/json,.json" class="hide">
-<script src="app.js?v=1.0.1"></script>
+<script src="app.js?v=1.0.2"></script>
 </body>
 </html>
