@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#0d0a14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VũTube.cơm">
+<meta name="description" content="Lướt video theo chủ đề bạn thích, không quảng cáo rối mắt, không cần tài khoản.">
+<title>VũTube.cơm</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="app.css?v=1.0.0">
+<script src="config.js?v=1.0.0"></script>
+</head>
+<body>
+<nav id="side"></nav>
+<div id="top">
+  <div class="tr" id="trMain">
+    <div class="logo"><img src="icons/icon-192.png" alt=""><b>Vũ<span>Tube</span><small>.cơm</small></b></div>
+    <form class="sbox" id="sf"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" enterkeyhint="search" placeholder="Tìm video…" autocomplete="off" spellcheck="false"></form>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="strict hide" id="strictRow"><button class="sw" id="strictSw" aria-label="Chỉ chủ đề này"></button><span id="strictT">Chỉ chủ đề này</span></div>
+</div>
+<main>
+  <div class="note" id="relayBar"><span style="font-size:20px">⏳</span><div><b>Đang chờ máy chủ</b>Đang hiện video mẫu. Khi máy chủ chạy, bạn tìm được mọi video.</div></div>
+  <section class="view on" id="vHome"></section>
+  <section class="view" id="vSearch"></section>
+  <section class="view" id="vKenh"></section>
+  <section class="view" id="vLib"></section>
+  <section class="view" id="vSet"></section>
+  <section class="view" id="vLuot"><div id="lfeed"></div><aside id="lrel"></aside>
+    <div class="lnav"><button id="lPrev" aria-label="Bài trước" title="Bài trước (↑)"><svg class="i" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button><button id="lNext" aria-label="Bài kế" title="Bài kế (↓)"><svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <div class="lhead"><button class="ibtn" id="lBack" aria-label="Quay lại"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b id="lTitle">Lướt</b></div>
+  </section>
+</main>
+<nav id="tabs">
+  <button data-t="home" class="on"><svg class="i" viewBox="0 0 24 24"><path d="M4 10.5L12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-5h-6v5H5.5A1.5 1.5 0 0 1 4 19z"/></svg>Trang chủ</button>
+  <button data-t="luot" class="luot"><span><svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="3"/><path d="M10.5 9.5v5l4-2.5z" fill="currentColor"/></svg></span>Lướt</button>
+  <button data-t="lib"><svg class="i" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></svg>Của tôi</button>
+  <button data-t="set"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Cài đặt</button>
+</nav>
+<div id="fsx"><button id="fsRot" aria-label="Đổi chiều xoay"><svg class="i" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg></button><button id="fsOut" aria-label="Thoát xem ngang"><svg class="i" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button></div>
+<div id="fswipe"></div>
+<div id="welcome" class="hide"></div>
+<div id="scrim"></div>
+<div id="sheet"></div>
+<div id="zoom"><img alt=""></div>
+<div id="toast"><span id="tt"></span><button id="tb"></button></div>
+<input type="file" id="fileIn" accept="application/json,.json" class="hide">
+<script src="app.js?v=1.0.0"></script>
+</body>
+</html>

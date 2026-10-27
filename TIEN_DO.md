@@ -1,21 +1,16 @@
-# VũTube.cơm – bản chia sẻ: tiến độ (TẠM DỪNG 27/10/2026 theo lời Vũ)
+# VũTube.cơm – bản chia sẻ: tiến độ
 
-## Đã làm
-- Đọc tham khảo (không sửa): RTSUBS_MAC/server/rtsubs/xem_web/xem.html (khung Lướt: luotSlide/luotAct/luotActivate,
-  CSS .slide/.srail2/.pcov/.dubbtn/.landbtn, xem ngang giả body.full.rot, playerVars ở begin()), xem_yt.py
-  (search/channel/related qua yt-dlp flat, is_vi/keep ẩn video tiếng Việt, topic_scores/rank_by_topic lọc chặt bằng Gemini).
-- Chưa viết code nào. Thử cài wrangler vào scratchpad: lỗi npm (file trùng) – chưa xử lý.
+## 27/10/2026 – bản 1.0.0 chạy thử local XONG (chưa deploy, chờ Vũ duyệt)
+Hướng chốt theo lời Vũ: người dùng xem kênh Việt → BỎ dịch/thuyết minh/Gemini/lọc kênh Việt; gợi ý chỉ theo chủ đề, trộn ngẫu nhiên,
+không ưu tiên ngôn ngữ/quốc gia. Phụ đề = phụ đề tiếng Việt có sẵn của YouTube (nút bật/tắt).
 
-## Thiết kế đã chốt (làm tiếp theo đúng thế này)
-- Trang tĩnh: index.html + app.css + app.js + sw.js + manifest + icon + config.js (RELAY=""), khoá localStorage tiền tố `vtc.`
-  (trùng origin tranvubber-dot.github.io với Gia phả/Hành Trình). Có seed.json video mẫu để dùng được khi chưa có relay.
-- Worker: /search (Data API v3 → dự phòng innertube), /channel, /related, /captions (innertube player nhiều client → json3;
-  dự phòng get_transcript), /translate (Gemini, mode cues|titles|query|score), cache KV + Cache API, giới hạn IP
-  (binding ratelimits hoặc bộ nhớ), CORS ALLOWED_ORIGINS. Khoá ở secret.
-- Thuyết minh: speechSynthesis vi-VN, đọc theo mốc, rate tới 1.4, câu kế đến thì cancel câu cũ, hạ tiếng gốc, phụ đề Việt.
-  Test: giả lập speechSynthesis trong ?thu=1 (không phát loa).
-- Relay giả Python (yt-dlp + Gemini từ RTSUBS_MAC/.env, không chép khoá) để test; wrangler dev nếu cài được.
+Đã làm: index.html + app.css + app.js (~1000 dòng) + sw.js + manifest + icon bát cơm ▶ (icons/, tools/make_icons.py)
++ seed.json 240 video mẫu (tools/make_seed.py) + 4 ảnh hướng dẫn (huong-dan/*.jpg, tools/make_guide.py)
++ Worker worker/src/index.js (search/channel/related, innertube trước → Data API dự phòng, Cache API + KV, giới hạn IP, CORS)
++ HUONG_DAN_TRIEN_KHAI.md. Tên kho dự kiến: vt-jdy2qkpq.
 
-## Còn lại
-Toàn bộ mục 1–8 của brief: code PWA, Worker + wrangler.toml, HUONG_DAN_TRIEN_KHAI.md, relay giả, test Chromium 390×844 + WebKit,
-4 ảnh hướng dẫn, tạo repo vt-xxxxxxxx + Pages (CHƯA tạo repo GitHub).
+Đã test (Playwright, tắt tiếng): Chromium 390×844, WebKit 390×844, Chromium 1440×900, Safari iPhone Air ảo (chọn chủ đề, lướt, xem ngang).
+Ảnh: _anh_test/ (không đưa lên git).
+
+Còn lại (chờ Vũ): tạo tk Cloudflare + wrangler login → kv create → (tuỳ chọn) YT_API_KEY → wrangler deploy;
+rồi dán URL vào config.js, tạo kho vt-jdy2qkpq + Pages, git grep khoá, push. Chưa thử Màn hình chính iOS (cần link https).

@@ -1,0 +1,19 @@
+# VũTube.cơm – máy chủ trung chuyển. Hướng dẫn: ../HUONG_DAN_TRIEN_KHAI.md
+name = "vutube-com"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+# Chỉ trang này mới được gọi máy chủ (đổi nếu đổi tên miền)
+ALLOWED_ORIGINS = "https://tranvubber-dot.github.io"
+ALLOW_LOCALHOST = "0"
+LIMIT_PER_MIN = "120"
+
+# Bộ đệm bền (tiết kiệm lượt gọi YouTube). Tạo bằng: npx wrangler kv namespace create KV
+# rồi dán id vào dưới đây và bỏ dấu # ở 3 dòng.
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "DAN_ID_VAO_DAY"
+
+# Khoá YouTube Data API (tuỳ chọn, dự phòng khi YouTube chặn): npx wrangler secret put YT_API_KEY
