@@ -1,14 +1,14 @@
 /* VũTube.cơm — bản chia sẻ. Mọi cá nhân hoá lưu trên máy người dùng (localStorage), không tài khoản. */
 (() => {
   "use strict";
-  const VER = "1.0.0";
+  if (window.__desk) return; // máy tính: app chạy trong khung điện thoại (iframe) ở giữa màn
+  const VER = "1.0.1";
   const $ = (id) => document.getElementById(id);
   const TEST = /[?&]thu=1\b/.test(location.search); // chạy thử: luôn tắt tiếng video
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fold = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
   const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pickR = (a) => a[Math.floor(Math.random() * a.length)];
-  const DESK = () => matchMedia("(min-width:1024px)").matches;
   const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   // ---------- lưu trên máy (khoá có tiền tố riêng: chung tên miền với trang khác) ----------
@@ -182,7 +182,7 @@
       follows = follows.filter((f) => !sameCh(f, b)); LS.set("follows", follows);
       document.querySelectorAll(".card,.row").forEach((c) => { const x = cardItem.get(c); if (x && isBlocked(x)) c.remove(); });
       toast("Đã chặn " + (b.name || "kênh"), "Hoàn tác", () => { blocked = blocked.filter((x) => x !== b); LS.set("blocked", blocked); }, 6000);
-      renderSide(); if (after) after(); else if (view === "luot") luotDropBlocked();
+      if (after) after(); else if (view === "luot") luotDropBlocked();
     } }]);
   }
   const cardItem = new WeakMap();
@@ -228,7 +228,7 @@
     document.body.classList.toggle("inluot", v === "luot");
     if (push) try { history.pushState({ v }, ""); } catch (_) {}
     if (v !== "luot") scrollTo(0, 0);
-    renderSide();
+   
   }
   addEventListener("popstate", (e) => {
     if (document.body.classList.contains("full")) { setFull(false, true); return; }
@@ -267,15 +267,15 @@
   function topicMenu(i) {
     const t = topics[i];
     sheet(t.e + " " + t.n, [
-      { icon: I.up, label: "Đưa lên trước", fn: () => { if (i > 0) { [topics[i - 1], topics[i]] = [topics[i], topics[i - 1]]; LS.set("topics", topics); renderChips(); renderSide(); } } },
-      { icon: I.down, label: "Đưa xuống sau", fn: () => { if (i < topics.length - 1) { [topics[i + 1], topics[i]] = [topics[i], topics[i + 1]]; LS.set("topics", topics); renderChips(); renderSide(); } } },
+      { icon: I.up, label: "Đưa lên trước", fn: () => { if (i > 0) { [topics[i - 1], topics[i]] = [topics[i], topics[i - 1]]; LS.set("topics", topics); renderChips(); } } },
+      { icon: I.down, label: "Đưa xuống sau", fn: () => { if (i < topics.length - 1) { [topics[i + 1], topics[i]] = [topics[i], topics[i + 1]]; LS.set("topics", topics); renderChips(); } } },
       { icon: I.trash, label: "Xoá chủ đề này", red: true, fn: () => removeTopic(i) },
     ]);
   }
   function removeTopic(i) {
     const t = topics[i]; topics.splice(i, 1); LS.set("topics", topics); if (cfg.topic > topics.length) { cfg.topic = 0; saveCfg(); }
-    renderChips(); renderSide(); if (view === "set") renderSet("topics");
-    toast("Đã xoá “" + t.n + "”", "Hoàn tác", () => { topics.splice(i, 0, t); LS.set("topics", topics); renderChips(); renderSide(); if (view === "set") renderSet("topics"); }, 6000);
+    renderChips(); if (view === "set") renderSet("topics");
+    toast("Đã xoá “" + t.n + "”", "Hoàn tác", () => { topics.splice(i, 0, t); LS.set("topics", topics); renderChips(); if (view === "set") renderSet("topics"); }, 6000);
   }
   function addTopicByName(name) {
     name = String(name || "").trim().slice(0, 40); if (!name) return false;
@@ -426,7 +426,7 @@
   function setFollow(ch, on) {
     const f = { id: ch.id || ch.chId || "", url: ch.url || ch.chUrl || "", name: ch.name || ch.ch || "", av: ch.av || ch.avatar || "", at: Date.now() };
     follows = on ? [f, ...follows.filter((x) => !sameCh(x, f))] : follows.filter((x) => !sameCh(x, f));
-    LS.set("follows", follows); toast(on ? "Đã theo dõi " + f.name : "Đã bỏ theo dõi " + f.name); renderSide();
+    LS.set("follows", follows); toast(on ? "Đã theo dõi " + f.name : "Đã bỏ theo dõi " + f.name);
   }
 
   // ---------- của tôi ----------
@@ -469,14 +469,14 @@
       r.querySelectorAll("span")[1].textContent = t.n;
       r.onclick = (e) => { const a = e.target.closest("[data-a]"); if (!a) return; const k = a.dataset.a;
         if (k === "rm") { removeTopic(i); return; }
-        const j = k === "up" ? i - 1 : i + 1; if (j < 0 || j >= topics.length) return; [topics[i], topics[j]] = [topics[j], topics[i]]; LS.set("topics", topics); renderSet("topics"); renderChips(); renderSide(); };
+        const j = k === "up" ? i - 1 : i + 1; if (j < 0 || j >= topics.length) return; [topics[i], topics[j]] = [topics[j], topics[i]]; LS.set("topics", topics); renderSet("topics"); renderChips(); };
       tb.append(r);
     });
     const ar = document.createElement("form"); ar.className = "inrow"; ar.innerHTML = `<input placeholder="Thêm chủ đề: vd. cắm trại, cờ vua…" maxlength="40"><button>Thêm</button>`;
-    ar.onsubmit = (e) => { e.preventDefault(); const v = ar.querySelector("input").value; if (addTopicByName(v)) { renderSet("topics"); renderChips(); renderSide(); toast("Đã thêm “" + v.trim() + "”"); } };
+    ar.onsubmit = (e) => { e.preventDefault(); const v = ar.querySelector("input").value; if (addTopicByName(v)) { renderSet("topics"); renderChips(); toast("Đã thêm “" + v.trim() + "”"); } };
     tb.append(ar);
     const sug = PRESETS.filter((p) => !topics.some((t) => t.n === p.n));
-    if (sug.length) { const k = document.createElement("div"); k.className = "kwrow"; sug.forEach((p) => { const b = document.createElement("button"); b.className = "chip"; b.textContent = p.e + " " + p.n; b.onclick = () => { addTopicByName(p.n); renderSet("topics"); renderChips(); renderSide(); }; k.append(b); }); tb.append(k); }
+    if (sug.length) { const k = document.createElement("div"); k.className = "kwrow"; sug.forEach((p) => { const b = document.createElement("button"); b.className = "chip"; b.textContent = p.e + " " + p.n; b.onclick = () => { addTopicByName(p.n); renderSet("topics"); renderChips(); }; k.append(b); }); tb.append(k); }
     // xem
     const xb = sec("Khi xem");
     xb.append(swLi("Phụ đề tiếng Việt", "Hiện khi video có sẵn phụ đề Việt", cfg.cc, () => { cfg.cc = !cfg.cc; saveCfg(); }),
@@ -563,21 +563,6 @@
     paintGo();
   }
 
-  // ---------- máy tính: thanh bên ----------
-  function renderSide() {
-    const sd = $("side"); if (!sd || !DESK()) return;
-    sd.innerHTML = `<div class="logo"><img src="icons/icon-192.png" alt=""><b>Vũ<span>Tube</span><small>.cơm</small></b></div>`;
-    const it = (ic, label, fn, on) => { const b = document.createElement("button"); b.className = "sb" + (on ? " on" : ""); b.innerHTML = ic + '<span class="lb"></span>'; b.querySelector(".lb").textContent = label; b.onclick = fn; return b; };
-    sd.append(it(I.home, "Trang chủ", () => { if (view !== "home") show("home"); cfg.topic = 0; saveCfg(); loadHome(); }, view === "home" && cfg.topic === 0),
-      it(I.reel, "Lướt", () => go("luot"), view === "luot"), it(I.heart, "Của tôi", () => go("lib"), view === "lib"), it(I.gear, "Cài đặt", () => go("set"), view === "set"));
-    const h = document.createElement("h6"); h.textContent = "Chủ đề"; sd.append(h);
-    topics.forEach((t, i) => { const b = it(`<span class="em">${esc(t.e)}</span>`, t.n, () => { cfg.topic = i + 1; saveCfg(); if (view !== "home") show("home"); loadHome(); }, view === "home" && cfg.topic === i + 1); b.oncontextmenu = (e) => { e.preventDefault(); topicMenu(i); }; sd.append(b); });
-    if (follows.length) { const h2 = document.createElement("h6"); h2.textContent = "Kênh theo dõi"; sd.append(h2);
-      follows.slice(0, 15).forEach((f) => sd.append(it(avHtml(f.name, f.av), f.name, () => openChannel({ chId: f.id, chUrl: f.url, ch: f.name, av: f.av }), false))); }
-    const v = document.createElement("div"); v.className = "ver"; v.textContent = "phiên bản " + VER; sd.append(v);
-  }
-  addEventListener("resize", () => { if (DESK() && !$("side").children.length) renderSide(); });
-
   // ================= LƯỚT kiểu mạng xã hội =================
   let lList = [], lIdx = -1, lSrc = null, lObs = null, lMoreBusy = false, lDeb = 0;
   let Pl = null; // video đang phát: {slide, it, player, state, ...}
@@ -601,7 +586,7 @@
     if (view !== "luot") show("luot");
     stopP();
     lList = []; lIdx = -1; lSrc = src;
-    const feed = $("lfeed"); feed.innerHTML = ""; $("lrel").innerHTML = "";
+    const feed = $("lfeed"); feed.innerHTML = "";
     $("lTitle").innerHTML = esc(src && src.name ? src.name : "Lướt");
     if (lObs) lObs.disconnect();
     lObs = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting && e.intersectionRatio > 0.6) activate(+e.target.dataset.i); }, { root: feed, threshold: [0.6] });
@@ -723,7 +708,7 @@
       if (keep) keep.scrollIntoView({ block: "start" });
     }, curBlocked ? 1200 : 0);
   }
-  function railOpen(r, on) { clearTimeout(r._t); r.classList.toggle("open", on); if (on && !DESK()) r._t = setTimeout(() => r.classList.remove("open"), 3500); }
+  function railOpen(r, on) { clearTimeout(r._t); r.classList.toggle("open", on); if (on) r._t = setTimeout(() => r.classList.remove("open"), 3500); }
   function railClose(r, ms) { clearTimeout(r._t); r._t = setTimeout(() => r.classList.remove("open"), ms || 0); }
   document.addEventListener("pointerdown", (e) => { if (view !== "luot") return; document.querySelectorAll(".srail2.open").forEach((r) => { if (!r.contains(e.target)) railClose(r, 0); }); });
 
@@ -737,7 +722,6 @@
       if (it.short && document.body.classList.contains("full")) setFull(false);
       play(slide, it);
       if (i >= lList.length - 3) luotFill();
-      luotRel(it); navPos();
     }, 180);
   }
   function stopP() {
@@ -840,38 +824,6 @@
   function luotGo(dlt) { const f = $("lfeed"), n = f.children[Math.max(0, lIdx + dlt)]; if (n) n.scrollIntoView({ behavior: "smooth", block: "start" }); }
   function leaveLuot() { stopP(); if (document.body.classList.contains("full")) setFull(false, true); }
   $("lBack").onclick = () => { if (history.state && history.state.v === "luot") history.back(); else show("home"); };
-  $("lPrev").onclick = () => luotGo(-1); $("lNext").onclick = () => luotGo(1);
-  let wheelAt = 0;
-  $("lfeed").addEventListener("wheel", (e) => { if (Math.abs(e.deltaY) < 8) return; e.preventDefault(); const n = performance.now(); if (n - wheelAt < 600) return; wheelAt = n; luotGo(e.deltaY > 0 ? 1 : -1); }, { passive: false });
-  document.addEventListener("keydown", (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const tg = e.target; if (tg && (tg.tagName === "INPUT" || tg.tagName === "TEXTAREA")) return;
-    if (e.key === "/" && view !== "luot") { e.preventDefault(); $("q").focus(); return; }
-    if (view !== "luot") return;
-    if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); luotGo(1); }
-    else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); luotGo(-1); }
-    else if (e.key === " ") { e.preventDefault(); if (Pl) togglePlay(Pl.slide); }
-    else if (e.key === "l" && Pl) act(Pl.it, "like", Pl.slide);
-    else if (e.key === "Escape") { if (document.body.classList.contains("full")) setFull(false); else $("lBack").click(); }
-  });
-  // máy tính: cột "Video liên quan" đổi theo bài đang xem; bấm -> chèn ngay sau bài đang xem
-  let relTok = 0;
-  async function luotRel(it) {
-    const box = $("lrel"); if (!DESK()) return;
-    const tok = ++relTok; box.innerHTML = `<h3>Video liên quan</h3>`; const g = document.createElement("div"); skeleton(g, 2); box.append(g);
-    let items = []; try { items = await related(it); } catch (_) {}
-    if (tok !== relTok) return;
-    g.innerHTML = "";
-    if (!items.length) { g.innerHTML = `<div class="empty">Chưa có video liên quan.</div>`; return; }
-    items.slice(0, 16).forEach((x) => { const r = row(x, () => { const at = lIdx + 1; const ex = lList.findIndex((y) => y.id === x.id); if (ex > lIdx) { luotGo(ex - lIdx); return; } if (ex < 0) luotAdd([x], at); setTimeout(() => luotGo(1), 60); }); r.querySelector(".more").remove(); g.append(r); });
-  }
-  function navPos() { // nút ˄˅ sát mép phải thẻ đang xem
-    const sl = Pl && Pl.slide, nv = document.querySelector(".lnav"); if (!sl || !nv || !DESK()) return;
-    const r = sl.getBoundingClientRect(), room = innerWidth - 380 - r.right;
-    nv.style.left = Math.round(room > 70 ? r.right + 14 : r.right - 60) + "px";
-  }
-  addEventListener("resize", () => view === "luot" && navPos());
-
   // ---------- xem ngang giả: máy khoá xoay vẫn xem ngang được ----------
   let fsT = 0, fsAuto = false;
   const portrait = () => innerHeight > innerWidth;
@@ -906,7 +858,7 @@
   addEventListener("resize", () => { // máy mở khoá xoay: xoay ngang ở video ngang -> tự xem ngang; xoay dọc lại -> về khung lướt
     const b = document.body;
     if (b.classList.contains("full")) b.classList.toggle("rot", portrait() && !(Pl && Pl.it.short));
-    if (view !== "luot" || !Pl || DESK()) return;
+    if (view !== "luot" || !Pl) return;
     const land = innerWidth > innerHeight;
     if (land && !Pl.it.short && !b.classList.contains("full")) { setFull(true); fsAuto = true; }
     else if (!land && fsAuto && b.classList.contains("full")) setFull(false);
@@ -916,7 +868,7 @@
   async function boot() {
     if (RELAY()) api("/health", {}, 0).catch(() => {}); else setRelay(false);
     if (!topics || !topics.length) { topics = []; welcome(); } else loadHome();
-    renderSide();
+   
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost") && !TEST) navigator.serviceWorker.register("sw.js").catch(() => {});
     document.addEventListener("visibilitychange", () => { if (document.hidden && Pl) savePos(Pl, true); });
     addEventListener("pagehide", () => { if (Pl) savePos(Pl, true); });
